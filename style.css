@@ -1,0 +1,426 @@
+*{
+    margin: 0;
+    box-sizing: border-box;
+    padding: 0;
+    overflow: hidden;
+}
+html{
+    font-size: 62.5%;
+    overflow: hidden;
+}
+
+
+.container{
+    display: flex;
+    flex-direction: column;
+    color: #484848;
+    background-color: white;
+    font-family: Calibri;
+    font-size: 1.5rem;
+    font-weight: 300;
+}
+
+.title{
+    background-color: #217346;
+    text-align: center;
+    padding: 0.5rem;
+    
+    color: white;
+}
+.menu-bar{
+    display: flex;
+    flex-direction: row;
+    height: 5vh;
+    flex-wrap: wrap;
+    background-color: #217346;
+    
+}
+.menu-bar-item{
+    color: white;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+}
+
+.menu-bar-item.selected{
+    background-color: white;
+    color: #217346;
+}
+
+.menu-bar-item:hover{
+    background-color: #195534;
+    cursor: pointer;
+}
+
+.menu-bar-item.selected:hover{
+    cursor: default;
+    color: white;
+}
+
+.menu-icon-bar{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    height: 6vh;
+    
+}
+.icon {
+    height: 2rem;
+    width: 2rem;
+    min-width: 1rem;
+    fill: #484848;
+    
+}
+.menu-icon{
+    padding-left: 1rem;
+    padding-right: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.menu-icon:hover {
+    background-color: lightgray;
+    cursor: pointer;
+}
+
+.menu-selector {
+    padding: 0.2rem;
+    border: 1px solid #ccc;
+    height: 4.5vh;
+    
+    margin : auto 1rem ;
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+}
+#font-family{
+    width: 15rem;
+    min-width: 3rem;
+    font-family: Noto Sans;
+}
+#font-size{
+    width: 5rem;
+}
+
+.material-icons{
+    font-size: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.formula-bar {
+    display: flex;
+    flex-direction: row;
+    height: 5vh;
+    justify-content: center;
+    align-items: center;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    background-color: lightgray;
+}
+
+#selected-cell {
+    width: 12rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    height: 70%;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    background-color: #fff;
+}
+
+#formula-sign {
+    width: 4rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 70%;
+}
+
+#formula-input {
+    width: calc(100vw - 160px);
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    height: 70%;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    background-color: #fff;
+}
+
+.data-container{
+    display: grid;
+    overflow: scroll;
+    height: 80vh;
+    grid-template-columns: 5rem repeat(100,10rem);
+    overflow: scroll;
+    margin-right: 0.3rem;
+    
+}
+
+.cell{
+    border: 1px solid lightgray;
+    
+    height: 2rem;
+    text-align: center;
+    
+}
+.col-name-cell{
+    position: sticky;
+    top: 0;
+    background-color: #ededed ;
+}
+
+.row-name-cell{
+    position: sticky;
+    left: 0;
+    background-color: #ededed ;
+    
+}
+.input-cell{
+    padding-left: 0.3rem;
+    padding-right: 1.3rem;
+    font-size: 1.4rem;
+    font-family: Noto Sans;
+    text-align: left;
+    
+    outline: #217346;
+}
+.selection-cell{
+    position: sticky;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    background-color: #ededed;
+}
+.input-cell.selected{
+    border: 2px solid #217346;
+    background-color: #ededed;
+
+}
+
+.input-cell.first-cell-selected{
+    background-color: white;
+}
+
+.input-cell.top-selected{
+    border-top : 1px solid lightgrey;
+}
+.input-cell.bottom-selected{
+    border-bottom : 1px solid lightgrey;
+}
+.input-cell.left-selected{
+    border-left : 1px solid lightgrey;
+}
+.input-cell.right-selected{
+    border-right : 1px solid lightgrey;
+}
+
+
+
+
+
+.menu-icon.selected{
+    background-color: lightgray;
+    margin: 0.2rem;
+}
+
+.input-cell:hover{
+    cursor: cell;
+}
+
+.pickr{
+    position: absolute;
+    opacity: 0;
+}
+
+
+.sheet-bar{
+    position: fixed;
+    width: 100%;
+    height: 2.5rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    background-color: #ededed;
+    z-index: 100;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    
+}
+
+
+.sheet-scroller {
+    
+    display: flex;
+    align-items: center;
+}
+.scroller:hover{
+    cursor: pointer;
+    background-color: lightgray;
+}
+.add-sheet{
+    margin-right: 1rem;
+    color: #217346;
+}
+.add-sheet:hover{
+    cursor: pointer;
+    transform: scale(1.1);
+}
+
+.sheet-tab-container {
+    display: flex;
+    border-left: 1px solid lightgray;
+    overflow: scroll;
+}
+.sheet-tab{
+    padding-left: 1rem;
+    padding-right: 1rem;
+    border-right: 1px solid lightgray;
+    display: flex;
+    justify-content: center;
+    font-weight: 600;
+    align-items: center;
+}
+
+.sheet-tab-container::-webkit-scrollbar {
+    display: none;
+}
+
+.sheet-tab-container {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.sheet-tab:hover {
+    background-color: lightgray;
+    cursor: pointer;
+}
+.sheet-tab.selected {
+    color: #217346;
+    border-bottom: 5px solid #217346;
+}
+
+.sheet-tab.selected:hover {
+    background-color: #fff;
+    cursor: default;
+}
+
+.sheet-options-modal{
+    position: absolute;
+    background-color: #fff;
+    box-shadow: 0 8px 16px 0 lightgray;
+    bottom: 4vh;
+    left: 200px;
+
+}
+
+
+.option{
+    padding: 7px 15px 7px 15px;
+}
+.option:hover{
+    background-color: lightgray;
+    cursor: default;
+}
+
+.sheet-modal-parent{
+    height: 100vh;
+    width: 100vw;
+    position: absolute;
+    top : 0;
+    background-color: rgba(68, 68, 68, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 200;
+}
+
+.sheet-rename-modal,.sheet-delete-modal{
+    background-color: white;
+    box-shadow: 0 18px 16px 0 rgba(48, 47, 47, 0.575);
+    padding: 15px;
+    min-width: 400px;
+    width: 30vw;
+}
+
+.sheet-modal-title{
+    text-align: center;
+    font-size: 2.6rem;
+    color: #217421;
+    font-weight: bold;
+}
+
+.sheet-modal-input-container,.sheet-modal-detail-container{
+    padding: 2rem;
+}
+
+.sheet-modal-detail-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2.4rem;
+    font-weight: 600;
+}
+.sheet-modal-input-title,.sheet-modal-detail-title{
+    display: block;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+.sheet-modal-input{
+    height: 2rem;
+    width: 100%;
+    font-size: 1.2rem;
+    outline-color: #217346;
+}
+
+.sheet-modal-confirmation{
+    display: flex;
+    justify-content: center;
+    justify-content: space-evenly;
+    align-items: center;
+    padding: 15px;
+
+}
+.button{
+    border: 1px solid;
+    width: 10rem;
+    height: 4rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: .3rem;
+    font-weight: 600;
+
+}
+.yes-button{
+    background-color: #217346;
+    color: white;
+}
+
+.yes-button:hover{
+    background-color: #125f35;
+    cursor: pointer;
+}
+
+.no-button:hover{
+    background-color: lightgray;
+}
+.rename-error{
+    color: red;
+    margin-top: 1rem;
+}
+
+
+
+
+
+
+
