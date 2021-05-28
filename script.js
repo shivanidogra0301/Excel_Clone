@@ -1,654 +1,917 @@
-
-
-let container = document.querySelector(".data-container")
-
-function columnname(n){
-    
-    let str = ""
-        while (n > 0) {
-            let rem = n % 26;
-            if (rem == 0) {
-                str = "Z" + str;
-                n = Math.floor(n / 26) - 1;
-            } else {
-                str = String.fromCharCode((rem - 1) + 65) + str;
-                n = Math.floor(n / 26);
-            }
-        }
-        
-    return str
+let container = document.querySelector('.data_container');
+let alignments = document.querySelectorAll('.alignment'); //left, right, center
+let fontStyleOptions = document.querySelectorAll('#font_style'); //bold ,italic , underline
+let arr = [];
+let row = 25;
+let column = 25;
+let sheets = {
+	'1': {}
+};
+let sheetNames = {
+	'1': ""
 }
+let selectedSheet = '1';
+let prevSelectedSheet = '1'
+let DefaultProperties = {
+	fontFamily: 'Noto Sans',
+	fontSize: 1.2,
+	text: '',
+	bold: false,
+	italic: false,
+	underline: false,
+	alignment: 'left',
+	backgroundColor: '',
+	color: '',
+	formula: '',
+	children: []
+};
+let fileSaved = true;
+let title = document.querySelector('.title span[id = "name"]');
+let title_span = document.querySelector('.title span[id = "file_status"]');
 
-let celldata = {
-    "Sheet1" :{}
-}
-let selectedsheet = "Sheet1";
-let lastlyaddedsheet = 1
-let totalsheets = 1;
-let defaultprop = {
-    "text" : "",
-    "font-family" : "Noto Sans",
-    "font-size" : 14,
-    "bold" : false,
-    "italic" : false,
-    "underline" : false,
-    "alignment" : "left",
-    "color" :"",
-    "bgcolor" :""
-}
-
-
-
-
-
-for(let i = 0; i <= 100; i++){
-    
-    for(let j = 0; j <= 100; j++){
-
-        let dv = document.createElement("div");
-
-        if(i == 0 && j == 0){
-            dv.innerText="";
-            dv.classList.add("selection-cell")
-            
-        }
-        else if(j == 0){
-            dv.innerText = i;
-            dv.classList.add("row-name-cell")
-
-            
-        }
-        else if(i == 0){
-            dv.innerText= columnname(j);
-            dv.classList.add("col-name-cell")
-
-        }
-        else{
-            dv.setAttribute("contenteditable","false");
-            dv.setAttribute("class","input-cell");
-        }
-        
-        dv.classList.add("cell")
-        
-        dv.setAttribute("col",j);
-        dv.setAttribute("row",i);
-
-        container.appendChild(dv);
-    }
-    
-}
-$(`.input-cell[row = 1][col = 1]`).addClass("selected first-cell-selected");
-
-$(".input-cell").dblclick(function(e){
-    $(".input-cell.selected").removeClass("selected top-selected bottom-selected left-selected right-selected");
-    $(this).addClass("selected");
-    
-    $(this).attr("contenteditable","true");
-    $(this).focus();
-    
-
-})
-
-$(".input-cell").blur(function(e){
-    updateCellData("text", $(this).text());
-    $(this).attr("contenteditable","false");
-    
-})
-
-function getRowcol(ele){
-    let row = $(ele).attr("row");
-    let col = $(ele).attr("col");
-    return [Number.parseInt(row),Number.parseInt(col)]; 
-}
-
-function getTopLeftRightBottom(rowid,colid){
-    let topcell = $(`.input-cell[row = ${rowid-1}][col = ${colid}]`)
-    let bottomcell = $(`.input-cell[row = ${rowid+1}][col = ${colid}]`)
-    let leftcell = $(`.input-cell[row = ${rowid}][col = ${colid-1}]`)
-    let rightcell = $(`.input-cell[row = ${rowid}][col = ${colid+1}]`)
-    return [topcell,bottomcell,leftcell,rightcell];
-
-}
-
-$(".input-cell").click(function(e){
-    $(".input-cell.selected").attr("contenteditable","false");
-    
-
-    let [rowid,colid] = getRowcol(this)
-    // console.log(rowid+" "+colid);
-    let [topcell,bottomcell,leftcell,rightcell] = getTopLeftRightBottom(rowid,colid);
-
-    if($(this).hasClass("selected") && e.ctrlKey) {
-        unselectCell(this,e,topcell,bottomcell,leftcell,rightcell);
-
-    } else {
-        selectedCell(this,e,topcell,bottomcell,leftcell,rightcell);
-    }
-})
-
-function unselectCell(ele,e,topCell,bottomCell,leftCell,rightCell) {
-    if($(ele).attr("contenteditable") == "false") {
-        if($(ele).hasClass("top-selected")) {
-            topCell.removeClass("bottom-selected");
-        }
-    
-        if($(ele).hasClass("bottom-selected")) {
-            bottomCell.removeClass("top-selected");
-        }
-    
-        if($(ele).hasClass("left-selected")) {
-            leftCell.removeClass("right-selected");
-        }
-    
-        if($(ele).hasClass("right-selected")) {
-            rightCell.removeClass("left-selected");
-        }
-    
-        $(ele).removeClass("selected top-selected bottom-selected left-selected right-selected");
-
-}
-}
-
-let count = 0;
-function selectedCell(ele,e,topcell,bottomcell,leftcell,rightcell){
-    
-    if(e.ctrlKey){
-        //to check top cell is selected or not
-
-        let topselected; 
-        if(topcell){
-            topselected = topcell.hasClass("selected");
-        }
-
-        let bottomselected; 
-        if(bottomcell){
-            bottomselected = bottomcell.hasClass("selected");
-        }
-
-        let leftselected; 
-        if(leftcell){
-            leftselected = leftcell.hasClass("selected");
-        }
-
-        let rightselected; 
-        if(rightcell){
-            rightselected = rightcell.hasClass("selected");
-        }
-
-        if(topselected){
-            $(ele).addClass("top-selected")
-            topcell.addClass("bottom-selected")
-        }
-
-        if(bottomselected){
-            $(ele).addClass("bottom-selected")
-            bottomcell.addClass("top-selected")
-        }
-
-        if(leftselected){
-            $(ele).addClass("left-selected ")
-            leftcell.addClass("right-selected")
-        }
-
-        if(rightselected){
-            $(ele).addClass("right-selected ")
-            rightcell.addClass("left-selected")
-        }
-    }
-    else{
-        $(".input-cell.selected").removeClass("selected top-selected left-selected right-selected bottom-selected first-cell-selected")
-        count = 0;
-    }
-    if(count == 0){
-        $(ele).addClass("first-cell-selected");
-    }
-    count++;
-    $(ele).addClass("selected");
-    
-    changeHeader(getRowcol(ele))
-}
-function changeHeader([rowid,colid]){
-    
-    let data;
-    if(celldata[selectedsheet][rowid-1]!=undefined && celldata[selectedsheet][rowid-1][colid -1] != undefined){
-         data = celldata[selectedsheet][rowid-1][colid -1];
-
-    }
-    else{
-        
-        data = defaultprop;
-    }
-    
-    
-    $(".alignment.selected").removeClass("selected");
-    $(`.alignment[data-type=${data.alignment}]`).addClass("selected");
-    toggleInIconsStyle(data,"bold")
-    toggleInIconsStyle(data,"italic")
-    toggleInIconsStyle(data,"underline")
-    $("#font-family").val(data["font-family"]);
-    $("#font-family").css("font-family",data["font-family"]);
-
-    $("#font-size").val(data["font-size"]);
-
-}
-
-function toggleInIconsStyle(data,property){
-    if(data[property]) {
-        $(`#${property}`).addClass("selected");
-    } else {
-        $(`#${property}`).removeClass("selected");
-    }
-}
-
-let startcell = {};
-let endcell = {}
-let scrollXRStarted = false;
-$(".input-cell").mousedown(function(e){
-    e.preventDefault()
-    if(e.buttons == 1){
-        
-           let [rowid,colid] = getRowcol(this);
-            startcell = {rowId : rowid,colId:colid};
-        }
-    
+//renaming the title
+title.addEventListener('dblclick', (e) => {
+	title.setAttribute('contenteditable', true);
 });
 
-$(".input-cell").mouseenter(function(e){
-    if(e.buttons == 1){
-        let [rowid,colid] = getRowcol(this);
-        endcell = {rowId : rowid,colId:colid};
-        selectAllBetweenCells(startcell,endcell);
-    }
-})
+title.addEventListener('keydown', (e) => {
+	if (e.key === 'Enter') {
+		title.setAttribute('contenteditable', false);
+	}
+});
 
-function selectAllBetweenCells(start,end){
-    $(".input-cell.selected").removeClass("selected top-selected left-selected right-selected bottom-selected")
-    let rs = Math.min(start.rowId, end.rowId);
-    let re = Math.max(start.rowId,end.rowId);
-    let cs = Math.min(start.colId,end.colId);
-    let ce = Math.max(start.colId,end.colId);
-    for(let i = rs; i <= re; i++){
-        for( let j = cs; j <= ce; j++){
-        let [topcell,bottomcell,leftcell,rightcell] = getTopLeftRightBottom(i,j);
-            selectedCell($(`.input-cell[row = ${i}][col = ${j}]`)[0],{"ctrlKey" : true},topcell,bottomcell,leftcell,rightcell)
-        }
-    }
+function updateSheetData(property, value) {
+	fileSaved = false;
+	title_span.innerText = '(unsaved)';
+	if (value !== DefaultProperties[property]) {
+		let selectedCells = document.querySelectorAll('.selected');
+		for (let selectedCell of selectedCells) {
+			let row = Number.parseInt(selectedCell.getAttribute('row'));
+			let col = Number.parseInt(selectedCell.getAttribute('col'));
+			let key = row + '-' + col;
+			if (sheets[selectedSheet][key] == undefined) {
+				sheets[selectedSheet][key] = {};
+				sheets[selectedSheet][key] = {
+					...DefaultProperties,
+					[property]: value
+				};
+			} else {
+				sheets[selectedSheet][key] = {
+					...sheets[selectedSheet][key],
+					[property]: value
+				};
+			}
+		}
+	} else {
+		let selectedCells = document.querySelectorAll('.selected');
+		for (let selectedCell of selectedCells) {
+			let row = Number.parseInt(selectedCell.getAttribute('row'));
+			let col = Number.parseInt(selectedCell.getAttribute('col'));
+			let key = row + '-' + col;
+			if (sheets[selectedSheet][key] != undefined) {
+				sheets[selectedSheet][key][property] = value;
+				if (JSON.stringify(sheets[selectedSheet][key]) == JSON.stringify(DefaultProperties)) {
+					delete sheets[selectedSheet][key];
+				}
+			}
+		}
+	}
 }
 
-$(".alignment").click(function(e){
-    let align = $(this).attr("data-type");
-    $(".alignment.selected").removeClass("selected");
-    $(this).addClass("selected")
-    $(".input-cell.selected").css("text-align",align);
-    // $(".input-cell.selected").each(function(idx,data){
-    //     let [rowId,colId] = getRowcol(data);
-    //     celldata[rowId-1][colId-1].alignment = align;
-    // })
-    updateCellData("alignment",align);
-
-})
-
-$('#bold').click(function(e){
-    setStyle(this,"bold","font-weight","bold")
-})
-
-$('#italic').click(function(e){
-    setStyle(this,"italic","font-style","italic")
-})
-
-$('#underline').click(function(e){
-    setStyle(this,"underline","text-decoration","underline")
-})
-
-function setStyle(ele,property,key,value){
-    if($(ele).hasClass("selected")){
-        $(ele).removeClass("selected");
-        $(".input-cell.selected").css(key,"");
-        $(".input-cell.selected").each(function(index,data){
-            // let [rowid,colid] = getRowcol(data);
-            // celldata[rowid-1][colid-1][property] = false;
-            updateCellData(property,false);
-        })
-    }
-
-    else{
-        $(ele).addClass("selected");
-        $(".input-cell.selected").css(key,value);
-        $(".input-cell.selected").each(function(index,data){
-            // let [rowid,colid] = getRowcol(data);
-
-            // celldata[rowid-1][colid-1][property] = true;
-            updateCellData(property,true);
-
-        })
-    }
+function getcols(cnt, arr, c, j) {
+	if (cnt > column) return;
+	for (let i = 0; i < 26; i++) {
+		if (cnt < column) {
+			arr.push(c + String.fromCharCode(65 + i));
+			cnt++;
+		} else {
+			return;
+		}
+	}
+	getcols(cnt, arr, String.fromCharCode(65 + j), j + 1);
 }
 
-const pickr = Pickr.create({
-    el: '.format-color',
-    theme: 'monolith', // or 'monolith', or 'nano'
+function addAttribute(el, i, j, data) {
+	el.setAttribute('row', i);
+	el.setAttribute('col', j);
+	el.setAttribute('name', data+i);
+	if (el.nodeName === 'INPUT') {
+		el.setAttribute('type', 'text');
+		el.setAttribute('readonly', true);
+	}
+}
 
-    swatches: [
-        'rgba(244, 67, 54, 1)',
-        'rgba(233, 30, 99, 0.95)',
-        'rgba(156, 39, 176, 0.9)',
-        'rgba(103, 58, 183, 0.85)',
-        'rgba(63, 81, 181, 0.8)',
-        'rgba(33, 150, 243, 0.75)',
-        'rgba(3, 169, 244, 0.7)',
-        'rgba(0, 188, 212, 0.7)',
-        'rgba(0, 150, 136, 0.75)',
-        'rgba(76, 175, 80, 0.8)',
-        'rgba(139, 195, 74, 0.85)',
-        'rgba(205, 220, 57, 0.9)',
-        'rgba(255, 235, 59, 0.95)',
-        'rgba(255, 193, 7, 1)'
-    ],
+function addCells(i, j, data) {
+	let el;
+	let input = document.createElement('input');
+	let div = document.createElement('div');
 
-    components: {
+	if (i == 0 && j == 0) {
+		el = div;
+		el.classList.add('selectAll', 'cell');
+	} else if (j == 0 && i != 0) {
+		el = div;
+		el.innerText = i;
+		el.classList.add('row', 'cell');
+	} else if (i == 0 && j != 0) {
+		el = div;
+		el.innerText = data;
+		el.classList.add('column', 'cell');
+	} else {
+		el = input;
+		el.classList.add('cell', 'editable_cell');
+	}
+	addAttribute(el, i, j, data);
+	container.appendChild(el);
+}
 
-        // Main components
-        preview: true,
-        opacity: true,
-        hue: true,
-    }
+//generating column names
+getcols(0, arr, '', 0);
+
+//generating 2d grid
+for (let i = 0; i < row + 1; i++) {
+	for (let j = 0; j < column + 1; j++) {
+		addCells(i, j, arr[j - 1]);
+	}
+}
+
+function getTopLeftBottomRightCell(rowId, colId) {
+	let topCell = document.querySelector(`.cell[row = '${rowId - 1}'][col = '${colId}']`);
+	let bottomCell = document.querySelector(`.cell[row = '${rowId + 1}'][col = '${colId}']`);
+	let leftCell = document.querySelector(`.cell[row = '${rowId}'][col = '${colId - 1}']`);
+	let rightCell = document.querySelector(`.cell[row = '${rowId}'][col = '${colId + 1}']`);
+	return [ topCell, bottomCell, leftCell, rightCell ];
+}
+
+//seleting the cell when ctrl key is pressed
+function selectCell(el, top, right, bottom, left) {
+	let topSelected;
+	if (top) {
+		topSelected = [ ...top.classList ].includes('selected');
+	}
+
+	let rightSelected;
+	if (right) {
+		rightSelected = [ ...right.classList ].includes('selected');
+	}
+
+	let bottomSelected;
+	if (bottom) {
+		bottomSelected = [ ...bottom.classList ].includes('selected');
+	}
+
+	let leftSelected;
+	if (left) {
+		leftSelected = [ ...left.classList ].includes('selected');
+	}
+
+	if (topSelected) {
+		el.classList.add('top_selected');
+		top.classList.add('bottom_selected');
+	}
+
+	if (rightSelected) {
+		el.classList.add('right_selected');
+		right.classList.add('left_selected');
+	}
+
+	if (bottomSelected) {
+		el.classList.add('bottom_selected');
+		bottom.classList.add('top_selected');
+	}
+
+	if (leftSelected) {
+		el.classList.add('left_selected');
+		left.classList.add('right_selected');
+	}
+	el.classList.add('selected');
+}
+
+//unseleting the cell when ctrl key is pressed
+function unselectCell(el, top, right, bottom, left) {
+	let classArr = [ ...el.classList ];
+	if (classArr.includes('top_selected')) {
+		el.classList.remove('top_selected');
+		top.classList.remove('bottom_selected');
+	}
+	if (classArr.includes('right_selected')) {
+		el.classList.remove('right_selected');
+		right.classList.remove('left_selected');
+	}
+	if (classArr.includes('bottom_selected')) {
+		el.classList.remove('bottom_selected');
+		bottom.classList.remove('top_selected');
+	}
+	if (classArr.includes('left_selected')) {
+		el.classList.remove('left_selected');
+		left.classList.remove('right_selected');
+	}
+
+	el.classList.remove('selected');
+}
+
+//selecting cell with mouse
+function mouseSelection(startCell, endCell) {
+	let selectedCells = document.querySelectorAll('.selected');
+	for (let selectedCell of selectedCells) {
+		selectedCell.classList.remove('selected', 'top_selected', 'right_selected', 'bottom_selected', 'left_selected');
+	}
+
+	let rs = Math.min(startCell.row, endCell.row);
+	let re = Math.max(startCell.row, endCell.row);
+	let cs = Math.min(startCell.col, endCell.col);
+	let ce = Math.max(startCell.col, endCell.col);
+
+	for (let i = rs; i <= re; i++) {
+		for (let j = cs; j <= ce; j++) {
+			let [ topCell, bottomCell, leftCell, rightCell ] = getTopLeftBottomRightCell(i, j);
+			let el = document.querySelector(`.cell[row = '${i}'][col = '${j}']`);
+			selectCell(el, topCell, rightCell, bottomCell, leftCell);
+		}
+	}
+}
+
+function addRemoveStyle(obj, prop) {
+	let el = document.querySelector(`div[data = '${prop}']`);
+	if (obj[prop]) {
+		el.classList.add('icon_selected');
+	} else {
+		el.classList.remove('icon_selected');
+	}
+}
+
+function addRemoveColor(obj, prop) {
+	let el = document.querySelector(`svg[name = '${prop}']`);
+	if (obj[prop] !== '') {
+		el.style.fill = obj[prop];
+	} else {
+		el.style.fill = '#000';
+	}
+}
+
+//font family and font size
+function addRemoveFontProperties(obj, prop) {
+	let el = document.querySelector(`select[id = '${prop}']`);
+	if (el === 'fontFamily') {
+		if (obj[prop] !== '') {
+			el.value = obj[prop];
+		} else {
+			el.value = 'Noto Sans';
+		}
+	} else {
+		if (obj[prop] !== '') {
+			el.value = obj[prop];
+		} else {
+			el.value = '1.2';
+		}
+	}
+}
+
+//showing the current formula
+let formula_bar = document.querySelector('.formula_input');
+function addFormula(obj, prop){
+	formula_bar.value = obj[prop];
+}
+
+// changing the header when cell is clicked
+function changeHeader(row, col) {
+	let obj;
+	let key = row + '-' + col;
+	if (sheets[selectedSheet][key]) {
+		obj = sheets[selectedSheet][key];
+	} else {
+		obj = { ...DefaultProperties };
+	}
+	let prev_selected = document.querySelector('.alignment.icon_selected');
+	if (prev_selected != null) prev_selected.classList.remove('icon_selected');
+	let cur = document.querySelector(`.alignment[data = '${obj.alignment}']`);
+	cur.classList.add('icon_selected');
+
+	addRemoveStyle(obj, 'bold');
+	addRemoveStyle(obj, 'italic');
+	addRemoveStyle(obj, 'underline');
+
+	//for colors
+	addRemoveColor(obj, 'backgroundColor');
+	addRemoveColor(obj, 'color');
+
+	//fontproperties
+	addRemoveFontProperties(obj, 'fontFamily');
+	addRemoveFontProperties(obj, 'fontSize');
+
+	addFormula(obj, 'formula')
+}
+
+//keydown event detects all keys
+//keypress doesnt detect alt,ctrl, enter,shift
+
+let startCell = {};
+let endCell = {};
+
+let cells = document.querySelectorAll('.editable_cell');
+for (let cell of cells) {
+	//event for seleted cell
+	cell.addEventListener('click', (e) => {
+		let row = Number.parseInt(cell.getAttribute('row'));
+		let col = Number.parseInt(cell.getAttribute('col'));
+		let [ topCell, bottomCell, leftCell, rightCell ] = getTopLeftBottomRightCell(row, col);
+
+		if (e.ctrlKey && [ ...cell.classList ].includes('selected')) {
+			unselectCell(cell, topCell, rightCell, bottomCell, leftCell);
+		} else if (e.ctrlKey && ![ ...cell.classList ].includes('selected')) {
+			selectCell(cell, topCell, rightCell, bottomCell, leftCell);
+		} else {
+			let selectedCells = document.querySelectorAll('.selected');
+			for (let selectedCell of selectedCells) {
+				selectedCell.classList.remove(
+					'selected',
+					'top_selected',
+					'right_selected',
+					'bottom_selected',
+					'left_selected'
+				);
+				selectedCell.setAttribute('readonly', true);
+			}
+			cell.classList.add('selected');
+			changeHeader(row, col);
+		}
+	});
+
+	//event for focusing the input
+	cell.addEventListener('dblclick', () => {
+		let selectedCells = document.querySelectorAll('.selected');
+		for (let selectedCell of selectedCells) {
+			selectedCell.classList.remove('selected');
+			selectedCell.setAttribute('readonly', true);
+		}
+		cell.removeAttribute('readonly');
+		cell.classList.add('selected');
+	});
+
+	//events for the mouse Selection
+	cell.addEventListener('mousedown', (e) => {
+		// 1 == left click , 2 == right click // 0 no click
+		if (e.buttons == 1) {
+			startCell.row = Number.parseInt(e.target.getAttribute('row'));
+			startCell.col = Number.parseInt(e.target.getAttribute('col'));
+		}
+	});
+
+	//mouse enter event triggers when entering a new node
+	// window.innerWidth gives viewport width
+	// e.pageX gives x coordinate of cursor wrt viewport
+	cell.addEventListener('mouseenter', (e) => {
+		if (e.buttons == 1) {
+			// scroll right
+			if (Math.abs(e.pageX - window.innerWidth) <= 150) {
+				container.scrollBy({
+					top: 0,
+					left: 100,
+					behavior: 'smooth'
+				});
+			}
+
+			//scroll left
+			if (e.pageX <= 150) {
+				container.scrollBy({
+					top: 0,
+					left: -100,
+					behavior: 'smooth'
+				});
+			}
+			endCell.row = e.target.getAttribute('row');
+			endCell.col = e.target.getAttribute('col');
+			mouseSelection(startCell, endCell);
+		}
+	});
+
+	cell.addEventListener('change', (e) => {
+		updateSheetData('text', e.target.value);
+	});
+}
+
+// for changing the data alignment of cell
+for (let alignment of alignments) {
+	alignment.addEventListener('click', (e) => {
+		let a = alignment.getAttribute('data');
+		let prev_selected = document.querySelector('.alignment.icon_selected');
+
+		prev_selected.classList.remove('icon_selected');
+		alignment.classList.add('icon_selected');
+		let selectedCells = document.querySelectorAll('.selected');
+
+		for (let selectedCell of selectedCells) {
+			selectedCell.style.textAlign = a;
+			updateSheetData('alignment', a);
+		}
+	});
+}
+
+function setStyle(el, classname) {
+	let arr = [ ...el.classList ];
+	if (arr.includes('icon_selected')) {
+		el.classList.remove('icon_selected');
+		let selectedCells = document.querySelectorAll('.selected');
+
+		for (let selectedCell of selectedCells) {
+			selectedCell.classList.remove(classname);
+			updateSheetData(classname, false);
+		}
+	} else {
+		el.classList.add('icon_selected');
+		let selectedCells = document.querySelectorAll('.selected');
+
+		for (let selectedCell of selectedCells) {
+			selectedCell.classList.add(classname);
+			updateSheetData(classname, true);
+		}
+	}
+}
+
+//for bold italic underline
+for (let option of fontStyleOptions) {
+	option.addEventListener('click', (e) => {
+		let style = option.getAttribute('data'); //bold or italic or underline
+		setStyle(option, style);
+	});
+}
+
+//color pickers
+const pickr1 = Pickr.create({
+	el: '.bg_color_picker',
+	theme: 'monolith', // or 'monolith', or 'nano'
+
+	swatches: [
+		'rgba(244, 67, 54, 1)',
+		'rgba(233, 30, 99, 0.95)',
+		'rgba(156, 39, 176, 0.9)',
+		'rgba(103, 58, 183, 0.85)',
+		'rgba(63, 81, 181, 0.8)',
+		'rgba(33, 150, 243, 0.75)',
+		'rgba(3, 169, 244, 0.7)',
+		'rgba(0, 188, 212, 0.7)',
+		'rgba(0, 150, 136, 0.75)',
+		'rgba(76, 175, 80, 0.8)',
+		'rgba(139, 195, 74, 0.85)',
+		'rgba(205, 220, 57, 0.9)',
+		'rgba(255, 235, 59, 0.95)',
+		'rgba(255, 193, 7, 1)'
+	],
+
+	components: {
+		// Main components
+		preview: true,
+		opacity: true,
+		hue: true
+	}
 });
 
 const pickr2 = Pickr.create({
-    el: '.format-color-text',
-    theme: 'monolith', // or 'monolith', or 'nano'
+	el: '.text_color_picker',
+	theme: 'monolith', // or 'monolith', or 'nano'
 
-    swatches: [
-        'rgba(244, 67, 54, 1)',
-        'rgba(233, 30, 99, 0.95)',
-        'rgba(156, 39, 176, 0.9)',
-        'rgba(103, 58, 183, 0.85)',
-        'rgba(63, 81, 181, 0.8)',
-        'rgba(33, 150, 243, 0.75)',
-        'rgba(3, 169, 244, 0.7)',
-        'rgba(0, 188, 212, 0.7)',
-        'rgba(0, 150, 136, 0.75)',
-        'rgba(76, 175, 80, 0.8)',
-        'rgba(139, 195, 74, 0.85)',
-        'rgba(205, 220, 57, 0.9)',
-        'rgba(255, 235, 59, 0.95)',
-        'rgba(255, 193, 7, 1)'
-    ],
+	swatches: [
+		'rgba(244, 67, 54, 1)',
+		'rgba(233, 30, 99, 0.95)',
+		'rgba(156, 39, 176, 0.9)',
+		'rgba(103, 58, 183, 0.85)',
+		'rgba(63, 81, 181, 0.8)',
+		'rgba(33, 150, 243, 0.75)',
+		'rgba(3, 169, 244, 0.7)',
+		'rgba(76, 175, 80, 0.8)',
+		'rgba(139, 195, 74, 0.85)',
+		'rgba(205, 220, 57, 0.9)',
+		'rgba(255, 235, 59, 0.95)',
+		'rgba(255, 193, 7, 1)'
+	],
 
-    components: {
-
-        // Main components
-        preview: true,
-        opacity: true,
-        hue: true,
-    }
+	components: {
+		// Main components
+		preview: true,
+		opacity: true,
+		hue: true
+	}
 });
 
+function changeCellColor(property, color) {
+	let selectedCells = document.querySelectorAll('.selected');
+	let el = document.querySelector(`svg[name = '${property}']`);
+	el.style.fill = color;
+	for (let selectedCell of selectedCells) {
+		selectedCell.style[property] = color;
+		updateSheetData(property, color);
+	}
+}
+const pickers = [ { name: 'backgroundColor', el: pickr1 }, { name: 'color', el: pickr2 } ];
+for (let picker of pickers) {
+	picker.el.on('change', (color, instance) => {
+		changeCellColor(picker.name, color.toHEXA().toString());
+	});
+
+	picker.el.on('changestop', () => {
+		picker.el.hide();
+	});
+	picker.el.on('swatchselect', (color, instance) => {
+		changeCellColor(picker.name, color.toHEXA().toString());
+		picker.el.hide();
+	});
+}
+
+function addMenuStyles(prop, val) {
+	let selectedCells = document.querySelectorAll('.selected');
+	for (let selectedCell of selectedCells) {
+		updateSheetData(prop, val);
+		selectedCell.style[prop] = prop === 'fontSize' ? val + 'rem' : val;
+	}
+}
+
+//font styles
+let menus = document.querySelectorAll('select');
+for (let menu of menus) {
+	menu.addEventListener('change', (e) => {
+		let el = menu.getAttribute('id');
+		let v = e.target.value;
+		if (el === 'fontSize') {
+			v = Number.parseFloat(v);
+		}
+		addMenuStyles(el, v);
+	});
+}
+
+// all the logic related related to sheet change new sheet
+
+function emptySheet() {
+	let cells = sheets[selectedSheet];
+	for (let key in cells) {
+		let row = key.split('-')[0];
+		let col = key.split('-')[1];
+		let cell = document.querySelector(`input[row = '${row}'][col = '${col}']`);
+		cell.value = '';
+		cell.style.backgroundColor = '#fff';
+		cell.style.color = '#000';
+		cell.style.fontSize = '1.2rem';
+		cell.classList.remove('bold', 'underline', 'italic');
+		changeHeader(row, col);
+	}
+}
+
+function addDataToCell(obj, el) {
+	el.value = obj.text;
+	el.style.backgroundColor = obj.backgroundColor;
+	el.style.color = obj.color;
+	el.style.fontSize = obj.fontSize + 'rem';
+	el.style.fontFamily = obj.fontFamily;
+	el.style.textAlign = obj.alignment;
+	if (obj.bold == true) {
+		el.classList.add('bold');
+	}
+
+	if (obj.italic == true) {
+		el.classList.add('italic');
+	}
+
+	if (obj.underline == true) {
+		el.classList.add('ubderline');
+	}
+}
+
+function loadCurrentSheetData(no) {
+	let cells = sheets[no];
+
+	for (let key in cells) {
+		let obj = cells[key];
+		let row = key.split('-')[0];
+		let col = key.split('-')[1];
+		let cell = document.querySelector(`input[row = '${row}'][col = '${col}']`);
+		addDataToCell(obj, cell);
+	}
+}
+
+function resetSelectedCells() {
+	let selectedCells = document.querySelectorAll('.selected');
+	for (let selectedCell of selectedCells) {
+		selectedCell.classList.remove('selected', 'top_selected', 'right_selected', 'bottom_selected', 'left_selected');
+		selectedCell.setAttribute('readonly', true);
+	}
+}
+
+function resetHeader() {
+	let icons = document.querySelectorAll('.menu_icon');
+	let svgs = document.querySelectorAll('.menu_icon svg');
+
+	for (let icon of icons) {
+		icon.classList.remove('icon_selected');
+	}
+
+	for (let svg of svgs) {
+		svg.style.fill = '#000';
+	}
+}
+
+function sheetClickHandler(sheet) {
+	let no = sheet.getAttribute('no');
+
+	emptySheet(selectedSheet);
+	prevSelectedSheet = selectedSheet;
+	selectedSheet = no;
+	loadCurrentSheetData(no);
+
+	let bSheets = document.querySelectorAll('.sheetno'); //bsheets alias for bottom sheets
+	for (let s of bSheets) {
+		s.classList.remove('sheet_selected');
+	}
+	resetSelectedCells();
+	resetHeader();
+	sheet.classList.add('sheet_selected');
+}
+
+function addListenersToSheet(sheet) {
+	sheet.addEventListener('contextmenu', (e) => {
+		e.preventDefault();
+	});
+
+	sheet.addEventListener('click', (e) => {
+		sheetClickHandler(sheet);
+	});
+
+	//renaming the sheet
+	sheet.addEventListener('dblclick', (e) => {
+		sheet.setAttribute('contenteditable', true);
+	});
+
+	sheet.addEventListener('keydown', (e) => {
+		if (e.key === 'Enter') {
+			sheet.setAttribute('contenteditable', false);
+		}
+	});
+}
+
+function createNewSheet() {
+	//resetting the sheets
+	emptySheet();
+	fileSaved = false;
+	title_span.innerText = '(unsaved)';
+
+	let newSheetNo = Number.parseInt(Object.keys(sheets).length) + 1 + '';
+	sheets[newSheetNo] = {};
+	prevSelectedSheet = selectedSheet;
+	selectedSheet = newSheetNo;
+
+	let bottomSheets = document.querySelectorAll('.sheetno');
+	let sheetsContainer = document.querySelector('.sheets');
+	for (let sheet of bottomSheets) {
+		sheet.classList.remove('sheet_selected');
+	}
+	let newSheet = document.createElement('div');
+	newSheet.innerText = 'Sheet ' + newSheetNo;
+	newSheet.setAttribute('no', newSheetNo);
+	newSheet.classList.add('sheetno', 'sheet_selected');
+	addListenersToSheet(newSheet);
+	sheetsContainer.appendChild(newSheet);
+
+	loadCurrentSheetData(newSheetNo);
+	resetSelectedCells();
+	resetHeader();
+}
+
+//creating a new sheet
+let plus_btn = document.querySelector('.icon.icon-circle');
+plus_btn.addEventListener('click', (e) => {
+	createNewSheet();
+});
+
+//sheet operations
+let bottomSheets = document.querySelectorAll('.sheetno');
+for (let sheet of bottomSheets) {
+	addListenersToSheet(sheet);
+}
+
+//  logic related to sheet arrows
+let arrows = document.querySelectorAll('svg[name = "arrows"]');
+for (let arrow of arrows) {
+	arrow.addEventListener('click', () => {
+		let name = arrow.getAttribute('id');
+		if (Object.keys(sheets).length > 1) {
+			if (name === 'prev') {
+				let sheetSelected = document.querySelector('.sheet_selected');
+				let no = sheetSelected.getAttribute('no');
+				if (no !== '1') {
+					sheetClickHandler(sheetSelected.previousElementSibling);
+				}
+			} else {
+				let sheetSelected = document.querySelector('.sheet_selected');
+				let no = sheetSelected.getAttribute('no');
+				if (no !== Object.keys(sheets).length + '') {
+					sheetClickHandler(sheetSelected.nextElementSibling);
+				}
+			}
+		}
+	});
+}
+
+//openig of the file drawer
+let file = document.querySelector('.menuBarItem.file');
+let drawer = document.querySelector('.fileDrawer');
+let overlay = document.querySelector('.overlay');
+file.addEventListener('click', () => {
+	drawer.classList.add('move');
+	overlay.style.display = 'block';
+});
+
+let closingIcon = document.querySelector('.icon_leftArrow');
+closingIcon.addEventListener('click', () => {
+	drawer.classList.remove('move');
+	overlay.style.display = 'none';
+});
+
+overlay.addEventListener('click', () => {
+	let modal = document.querySelector('.modal');
+	drawer.classList.remove('move');
+	overlay.style.display = 'none';
+	modal.classList.add('modal_remove');
+});
+
+//file related functions for the excel book
+let new_btn = document.querySelector('.items.new');
+let save_btn = document.querySelector('.items.save');
+let open_btn = document.querySelector('.items.open');
+new_btn.addEventListener('click', () => {
+	window.open('http://127.0.0.1:5500/');
+	drawer.classList.remove('move');
+	drawer.style.transitionDuration = '0s';
+	overlay.style.display = 'none';
+});
+
+//prevent closing of the tab
+window.addEventListener('beforeunload', function(e) {
+	e.preventDefault();
+	if (!fileSaved) {
+		e.returnValue = 'Arr you sure you want to leave the website?';
+	} else {
+		console.log('No changes in the file');
+	}
+});
+
+//downloading the file
+function download(filename, text) {
+	let a = document.createElement('a');
+	a.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+	a.setAttribute('download', filename);
+
+	if (document.createEvent) {
+		let event = document.createEvent('MouseEvents');
+		event.initEvent('click', true, true);
+		a.dispatchEvent(event);
+	} else {
+		a.click();
+	}
+}
+
+//saving file into the system
+function saveFile() {
+	drawer.classList.remove('move');
+	let modal = document.querySelector('.modal');
+	let file_input = document.querySelector('.input');
+	let saveBtn = document.querySelector('.save_file');
+	modal.classList.remove('modal_remove');
+	overlay.style.display = 'block';
+
+	file_input.addEventListener('change', (e) => {
+		title.innerText = e.target.value;
+	});
+
+	saveBtn.addEventListener('click', () => {
+		let data_file = JSON.stringify(sheets);
+		let filename = document.querySelector('.title span[id = "name"]').innerText + '.json';
+		download(filename, data_file);
+		modal.classList.add('modal_remove');
+		overlay.style.display = 'none';
+	});
+
+	fileSaved = true;
+	title_span.innerText = '(saved)';
+}
+
+//saving the current excel book
+save_btn.addEventListener('click', () => {
+	saveFile();
+});
+
+function removeSheets() {
+	for (let s of bottomSheets) {
+		s.remove();
+	}
+}
+
+function loadData(data) {
+	sheets = data;
+	sheetSelected = '1';
+	let sheetsContainer = document.querySelector('.sheets');
+	for (let key in data) {
+		let newSheet = document.createElement('div');
+		newSheet.innerText = 'Sheet ' + key;
+		newSheet.setAttribute('no', key);
+		newSheet.classList.add("sheetno")
+		addListenersToSheet(newSheet);
+		sheetsContainer.appendChild(newSheet);
+	}
+	let s1 = document.querySelector('div[no = "1"]');
+	s1.classList.add("sheet_selected")
+	loadCurrentSheetData(1);
+	resetSelectedCells();
+	resetHeader();
+}
+function openFile() {
+	let f = document.createElement('input');
+	let file;
+	f.setAttribute('type', 'file');
+	f.setAttribute('accept', 'application/json');
+
+	if (document.createEvent) {
+		let event = document.createEvent('MouseEvents');
+		event.initEvent('click', true, true);
+		f.dispatchEvent(event);
+	} else {
+		f.click();
+	}
 
 
-$(".menu-selector").change(function(e){
-    let value = $(this).val();
-    let key = $(this).attr("id");
-    if(key == 'font-family'){
-        $("#font-family").css(key,value);
-    }
-    if(!isNaN(value)){
-        value = parseInt(value);
-    }
+	f.addEventListener('change', (e) => {
+		file = e.target.files[0];
+		let reader = new FileReader();
+		reader.readAsText(file);
+		reader.onload = () => {
+			removeSheets();
+			loadData(JSON.parse(reader.result));
 
-    $(".input-cell.selected").css(key,value);
-    $(".input-cell.selected").each(function(idx,data){
-        // let [rowid,colid] = getRowcol(data);
-        // celldata[rowid-1][colid-1][key] = value;
-        updateCellData(key,value);
-    })
+			overlay.style.display = 'none';
+			drawer.classList.remove('move');
+		};
+	});
+}
+//opening excel book
+open_btn.addEventListener('click', () => {
+	openFile();
+});
+
+let cut_copy_btn = document.querySelectorAll('.menu_icon[id= "cut_copy"]');
+let paste_btn = document.querySelector('.menu_icon[name= "paste"]');
+let clipboard = {
+	start_cell:"",
+	action: "",
+	cells: {}
+}
+
+//cut and copy
+for(let btn of cut_copy_btn){
+	btn.addEventListener('click', () => {
+		clipboard.start_cell = {...startCell};
+		clipboard.action = btn.getAttribute('name');
+		clipboard.cells = {};
+		let selectedCells = document.querySelectorAll('.selected');
+		for(let sc of selectedCells){
+			let row = sc.getAttribute('row');
+			let col = sc.getAttribute('col');
+			let key = row + "-" + col;
+			if(sheets[selectedSheet][key] != undefined){
+				clipboard.cells[key + '-' + selectedSheet] = {
+					...sheets[selectedSheet][key]
+				};
+			}
+		}
+	})
+}
+
+// paste
+paste_btn.addEventListener('click', () => {
+
+	for(let k in clipboard.cells){
+		let row = Number.parseInt(k.split('-')[0]);
+		let col = Number.parseInt(k.split('-')[1]);
+		let sname = Number.parseInt(k.split('-')[2]);
+		let cell = document.querySelector(`.cell[row = '${row}'][col = '${col}']`);
+		let key = row + "-" + col;
+
+		if(clipboard.action === 'cut'){
+			delete sheets[sname][key]
+			addDataToCell({...DefaultProperties}, cell);
+		}
+	}
+
+	clipboard.action = 'copy'
+	for(let k in clipboard.cells){
+		let row = Number.parseInt(k.split('-')[0]);
+		let col = Number.parseInt(k.split('-')[1]);
+		let sname = Number.parseInt(k.split('-')[2]);
+		let key = row + "-" + col;
+
+		let nr = startCell.row + Math.abs(clipboard.start_cell.row - row);
+		let nc = startCell.col + Math.abs(clipboard.start_cell.col - col);
+		let newKey = nr + "-" + nc;
+		sheets[selectedSheet][newKey] = {
+				...clipboard.cells[key + '-' + sname]
+		}
+	}
+	loadCurrentSheetData(selectedSheet);
 })
-
-
-function updateCellData(property,value) {
-    
-    if (value != defaultprop[property]) {
-        $(".input-cell.selected").each(function (index, data) {
-            let [rowId, colId] = getRowcol(data);
-            if (celldata[selectedsheet][rowId - 1] == undefined) {
-                celldata[selectedsheet][rowId - 1] = {};
-                celldata[selectedsheet][rowId - 1][colId - 1] = { ...defaultprop };
-                celldata[selectedsheet][rowId - 1][colId - 1][property] = value;
-            } else {
-                if (celldata[selectedsheet][rowId - 1][colId - 1] == undefined) {
-                    celldata[selectedsheet][rowId - 1][colId - 1] = { ...defaultprop };
-                    celldata[selectedsheet][rowId - 1][colId - 1][property] = value;
-                } else {
-                    celldata[selectedsheet][rowId - 1][colId - 1][property] = value;
-                }
-            }
-
-        });
-    } else {
-        $(".input-cell.selected").each(function (index, data) {
-            let [rowId, colId] = getRowcol(data);
-            if (celldata[selectedsheet][rowId - 1] != undefined &&celldata[selectedsheet][rowId - 1][colId - 1] != undefined) {
-                celldata[selectedsheet][rowId - 1][colId - 1][property] = value;
-                if (JSON.stringify(celldata[selectedsheet][rowId - 1][colId - 1]) == JSON.stringify(defaultprop)) {
-                    delete celldata[selectedsheet][rowId - 1][colId - 1];
-                }
-            }
-        });
-    }
-}
-$(".container").click(function(e){
-    $('.sheet-options-modal').remove();
-
-})
-
-function addSheetEvents(){
-    $(".sheet-tab.selected").on("contextmenu",function(e){
-        e.preventDefault();
-        selectSheet(this);
-
-        
-        $('.sheet-options-modal').remove();
-        let modal = $(`<div class="sheet-options-modal">
-        <div class="option sheet-rename">Rename</div>
-        <div class="option sheet-delete">Delete</div>
-    
-    </div>`);
-    modal.css({"left" : e.pageX});
-    $(".container").append(modal);
-    $(".sheet-rename").click(function(e){
-        let renameModal = $(`<div class="sheet-modal-parent">
-        <div class="sheet-rename-modal">
-            <div class="sheet-modal-title">Rename Sheet</div>
-            <div class= "sheet-modal-input-container">
-                <span class="sheet-modal-input-title">Rename Sheet to:</span>
-                <input type="text" class="sheet-modal-input">
-            </div>
-            <div class="sheet-modal-confirmation">
-                <div class="button yes-button">OK</div>
-                <div class="button no-button">Cancel</div>
-
-            </div>
-        </div>
-    </div>`)
-
-    $(".container").append(renameModal);
-     $(".no-button").click(function(e){
-        $(".sheet-modal-parent").remove();
-        })
-    $(".yes-button").click(function(e){
-        
-        renameSheet();
-    })
-    $(".sheet-modal-input").keypress(function(e){
-        if(e.key == "Enter"){
-            renameSheet();
-        }
-    })
-    })
-    $(".sheet-delete").click(function(e){
-        if(totalsheets > 1){
-            let deleteModal = $(`<div class="sheet-modal-parent">
-            <div class="sheet-delete-modal">
-                <div class="sheet-modal-title">Sheet Name</div>
-                <div class= "sheet-modal-detail-container">
-                    <span class="sheet-modal-detail-title">Are you sure?</span>
-                    
-                </div>
-                <div class="sheet-modal-confirmation">
-                    <div class="button yes-button">Delete</div>
-                    <div class="button no-button">Cancel</div>
-    
-                </div>
-            </div>
-        </div>
-    </div>`)
-            $(".container").append(deleteModal);
-            $(".no-button").click(function(e){
-                $(".sheet-modal-parent").remove();
-            })
-
-            $(".yes-button").click(function(){
-                deletesheet();
-            })
-            
-        }
-        else{
-            alert("error");
-        }
-       
-    })
-    
-    })
-
-    $(".sheet-tab.selected").click(function(e){
-        
-            selectSheet(this);
-    })
-
-
-}
-addSheetEvents();
-
-
-
-$(".add-sheet").click(function(e){
-    lastlyaddedsheet++;
-    totalsheets++;
-    celldata[`Sheet${lastlyaddedsheet}`] = {};
-    $(".sheet-tab.selected").removeClass("selected")
-    $(".sheet-tab-container").append(`<div class="sheet-tab selected">Sheet${lastlyaddedsheet}</div>`);
-    selectSheet();
-    addSheetEvents();
-})
-
-
-
-function selectSheet(ele){
-    if(ele && !$(ele).hasClass("selected")){
-        $(".sheet-tab.selected").removeClass("selected");
-        $(ele).addClass("selected");
-    }
-    emptyPrevSheets();
-    selectedsheet = $(".sheet-tab.selected").text();
-    loadCurrentSheet();
-    $(`.input-cell[row = 1][col = 1]`).click();
-
-    
-}
-function emptyPrevSheets(){
-    let data = celldata[selectedsheet];
-    let rowkeys = Object.keys(data);
-    for(let i of rowkeys){
-        let rowid = parseInt(i);
-        let colkeys = Object.keys(data[rowid]);
-        
-        for(let j of colkeys){
-            let colid = parseInt(j);
-            let cell = $(`.input-cell[row = ${rowid+1}][col = ${colid+1}]`);
-            cell.text("");
-            cell.css({
-                "font-family" : "NotoSans",
-                "font-size"  : 14,
-                "background-color" : "#fff",
-                "color" : "#444",
-                "font-weight" :"",
-                "font-style" :"",
-                "text-decoration" :"",
-                "text-align" :"left"
-            })
-        } 
-    }
-}
-
-function loadCurrentSheet(){
-   
-    let data = celldata[selectedsheet];
-    let rowkeys = Object.keys(data);
-    for(let i of rowkeys){
-        let rowid = parseInt(i);
-        let colkeys = Object.keys(data[rowid]);
-        
-        for(let j of colkeys){
-            let colid = parseInt(j);
-            let cell = $(`.input-cell[row = ${rowid+1}][col = ${colid+1}]`);
-            cell.text(data[rowid][colid]["text"]);
-            cell.css({
-                "font-family" : data[rowid][colid]["font-family"],
-                "font-size"  : data[rowid][colid]["font-size"],
-                "background-color" : data[rowid][colid]["background-color"],
-                "color" : data[rowid][colid]["color"],
-                "font-weight" :data[rowid][colid].bold?"bold":"",
-                "font-style" :data[rowid][colid].italic?"italic":"",
-                "text-decoration" :data[rowid][colid].underline?"underline":"",
-                "text-align" :data[rowid][colid].alignment
-            })
-        } 
-    }
-}
-function renameSheet(){
-    let newSheetName = $(".sheet-modal-input").val();
-    if(newSheetName && !Object.keys(celldata).includes(newSheetName)){
-        let newcelldata = {};
-        for(let i of Object.keys(celldata)){
-            if(i == selectedsheet){
-                newcelldata[newSheetName] = celldata[selectedsheet]
-            }
-            else{
-                newcelldata[i] = celldata[i];
-            }
-        }
-        celldata = newcelldata;
-        
-        selectedsheet = newSheetName;
-        $(".sheet-tab.selected").text(newSheetName);
-        $(".sheet-modal-parent").remove()
-    }
-    else{
-        $(".rename-error").remove();
-        $(".sheet-modal-input-container").append(`<div class= "rename-error">Sheet name is empty or already exists </div>`)
-    }
-
-
-
-}
-
-function deletesheet(){
-    $(".sheet-modal-parent").remove();
-    let sheetindex = Object.keys(celldata).indexOf(selectedsheet);
-    let curselectsheet = $(".sheet-tab.selected");
-    if(sheetindex == 0){
-        selectSheet(curselectsheet.next()[0])
-        
-    }
-    else{
-        selectSheet(curselectsheet.prev()[0])
-        
-    }
-    delete celldata[curselectsheet.text()]
-    curselectsheet.remove();
-    totalsheets--;
-}
-
-
-
 
