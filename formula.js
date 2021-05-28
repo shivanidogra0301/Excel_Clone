@@ -75,7 +75,7 @@ function evaluateExpression(values) {
         }
         //for cells like A3 , B12
         else {
-            let [n,_,__] = getCellData(v);
+            let [n,,_] = getCellData(v);
             expression += n + " ";
         }
     }
@@ -139,29 +139,30 @@ function setChildren(cellName, formula){
             let arr = [cellName];
 
             if (sheets[selectedSheet][key] == undefined) {
-				sheets[selectedSheet][key] = {};
-				sheets[selectedSheet][key] = {
-					...DefaultProperties,
-					children: [...arr]
-				};
-			} else {
-				sheets[selectedSheet][key] = {
-					...sheets[selectedSheet][key],
-					children: [...sheets[selectedSheet][key].children, ...arr]
-				};
-			}
+                sheets[selectedSheet][key] = {};
+                sheets[selectedSheet][key] = {
+                    ...DefaultProperties,
+                    children: [...arr]
+                };
+            } else {
+                sheets[selectedSheet][key] = {
+                    ...sheets[selectedSheet][key],
+                    children: [...sheets[selectedSheet][key].children, ...arr]
+                };
+            }
         }
     }
 }
 
 
 function checkCycle(cellName, formulaTokens) {
+    console.log("running");
     let cell = document.querySelector(`.cell[name = '${cellName}']`);
     let row = cell.getAttribute('row');
     let col = cell.getAttribute('col');
     let key = row + "-" + col;
     let children = sheets[selectedSheet][key] == undefined ? [] : sheets[selectedSheet][key].children;
-
+    console.log(children,cellName,formulaTokens)
     for (let child of children) {
         for (let f of formulaTokens) {
 
@@ -178,7 +179,9 @@ function checkCycle(cellName, formulaTokens) {
                 }
             }
         }
-        return checkCycle(child, formulaTokens);
+        if(checkCycle(child, formulaTokens)){
+            return true;
+        };
     }
     return false;  //cycle not found
 }
@@ -189,7 +192,7 @@ function formulaChangeHandler(values) {
     let selectedCell = document.querySelector('.cell.selected');
     let name = selectedCell.getAttribute('name');  ///gives A12 / B3
 //values.includes(name) = when B1 the parent of B1
-    if(values.includes(name) || checkCycle(name, values)){
+    if(values.includes(name) || checkCycle(name, [...values.split(" ")])){
         alert("cycle detected");
         return true;
     }
@@ -214,6 +217,7 @@ formulaBar.addEventListener('keydown', e => {
     }
 })
 
+//updating the value of children as the value of parent updated
 function updateChildren(cell) {
     let r = cell.getAttribute('row')
     let c = cell.getAttribute('col')
