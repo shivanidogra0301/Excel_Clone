@@ -41,6 +41,7 @@ title.addEventListener('keydown', (e) => {
 });
 
 function updateSheetData(property, value) {
+	console.log("sheet data running");
 	fileSaved = false;
 	title_span.innerText = '(unsaved)';
 	if (value !== DefaultProperties[property]) {
@@ -386,7 +387,21 @@ for (let cell of cells) {
 	});
 
 	cell.addEventListener('change', (e) => {
-		updateSheetData('text', e.target.value);
+		let r = cell.getAttribute('row');
+		let c = cell.getAttribute('col');
+		let key = r + "-" + c;
+		if (sheets[selectedSheet][key] == undefined) {
+			sheets[selectedSheet][key] = {};
+			sheets[selectedSheet][key] = {
+				...DefaultProperties,
+				text: e.target.value
+			};
+		} else {
+			sheets[selectedSheet][key] = {
+				...sheets[selectedSheet][key],
+				text: e.target.value
+			};
+		}
 	});
 }
 
@@ -866,6 +881,7 @@ let clipboard = {
 for(let btn of cut_copy_btn){
 	btn.addEventListener('click', () => {
 		clipboard.start_cell = {...startCell};
+	
 		clipboard.action = btn.getAttribute('name');
 		clipboard.cells = {};
 		let selectedCells = document.querySelectorAll('.selected');
@@ -879,6 +895,7 @@ for(let btn of cut_copy_btn){
 				};
 			}
 		}
+
 	})
 }
 
